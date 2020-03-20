@@ -1,0 +1,8 @@
+
+127.0.0.1 localhost
+127.0.0.1::8080 symfony.com
+127.0.0.1 symfony.com
+127.0.0.1::8080 api-rest-symfony.com.devel
+127.0.0.1 api-rest-symfony.com.devel
+
+::1 localhost
