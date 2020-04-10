@@ -184,25 +184,120 @@ class UserController extends AbstractController
 				//CIFRAR LA CONTRASEÑA
 				$pwd = hash('sha256',$password);
 
-				$data = [
-					'message' => $jwt_auth->signup()
-				];
-
 				//SI TODO ES VALIDO, LLAMAREMOS A UN SERVICIO PARA IDENTIFICAR AL USUARIO (JWT, TOKEN O UN OBJETO)
 
-				//CREAR SERVICIO JWT PARA DEVOLVER LOS DATOS
+				if ($gettoken) {
+					//DEVOLVERA EL TOKEN DEL USUARIO
+					$signup = $jwt_auth->signup($email,$pwd,$gettoken);
+				}else{
+					//DEVOLVERA EL OBJETO DEL USUARIO
+					$signup = $jwt_auth->signup($email,$pwd);
+				}
 
-
-			}else{
-				$data = [
-					'message' => 'VALIDACION INCORRECTA.'
-				];
-
+				return new JsonResponse($signup);
+			
 			}
 		}
 
 		// SI NOS DEVULVE BIEN LOS DATOS, RESPUESTA
 		return $this->resjson($data);
 	}
+
+	public function edit(Request $request, JwtAuth $jwt_auth){
+
+		//RESPUESTA POR DEFECTO
+		$data = [
+			'status' => 'error',
+			'code' => 400,
+			'message' => 'NO SE HA REALIZADO LA ACTUALIZACION',
+		];
+		
+		//Recoger la cabecera de autentificacion
+		$token = $request->headers->get('Authorization');
+
+		//CREAR UN METODO PARA CONPROBAR SI EL TOKEN ES CORRECTO
+		$authCheckToken = $jwt_auth->checkToken($token);
+
+		//SI ES CORRECTO, HACER LA ACTUALIZACION DEL USUARIO
+		if ($authCheckToken) {
+		//ACTUALIZAR AL USUARIO
+
+			//CONSEGUIR ENTITY MANAGER
+			$em = $this->getDoctrine()->getManager();
+
+
+			//CONSEGUIR LOS DATOS DEL USUARIO IDENTIFICADO
+			$identity = $jwt_auth->checkToken( $token, true);
+			
+			//CONSEGUIR EL USUARIO A ACTUALIZAR COMPLETO
+			$user_repo = $this->getDoctrine()->getRepository(User::class);
+
+			$user = $user_repo->findOneBy([
+				'id' => $identity->sub
+			]);
+
+
+			//RECOGER LOS DATOS A ACTUALIZAR POR POST
+			$json = $request->get('json', null);
+			$params = json_decode($json);
+
+			//COMPROBAR Y VALIDAR LOS DATOS
+			if($json != null || !empty($json)){
+
+				$name         = (!empty($params->name)) ? $params->name : null;
+				$surname      = (!empty($params->surname)) ? $params->surname : null;
+				$email        = (!empty($params->email)) ? $params->email : null;
+				
+				$validator = Validation::createValidator();
+				$validate_email = $validator->validate($email, [
+					new Email()
+				]);
+				
+				if(!empty($email) && count($validate_email) == 0 && (!empty($name)) && (!empty($surname)) ){
+					//ASIGNAR NUEVOS DATOS AL OBJETO DEL USUARIO
+					$user->setName($name);
+					$user->setSurname($surname);
+					$user->setEmail($email);
+
+					//COMPROBAR DUPLICADOS
+					$isset_user = $user_repo->findBy([
+						'email' => $email
+					]);
+
+					if (count($isset_user) == 0 || $identity->email == $email) {
+						//GUARDAR CAMBIOS EN LA BASE DE DATOS
+						$em->persist($user);
+						$em->flush();
+
+						$data = [
+							'status' => 'success',
+							'code' => 200,
+							'message' => 'USUARIO ACTUALIZADO',
+							'user' => $user
+						];
+
+					}else{
+						$data = [
+							'status' => 'error',
+							'code' => 400,
+							'message' => 'USUARIO DUPLICADO O EMAIL INCORRECTO',
+						];
+					}
+
+				}
+			}
+
+		}else{
+			$data = [
+							'status' => 'error',
+							'code' => 400,
+							'message' => 'ERROR DE AUTORIZACION',
+						];
+		}
+
+		return $this->resjson($data);
+
+	}
+
 
 }
