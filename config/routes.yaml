@@ -30,3 +30,29 @@ user_edit:
 video:
     path: /video
     controller: App\Controller\VideoController::index
+
+video_new:
+    path: /video/new
+    controller: App\Controller\VideoController::create
+    methods: [POST]
+
+video_edit:
+    path: /video/edit/{id}
+    controller: App\Controller\VideoController::create
+    methods: [PUT]
+
+video_list:
+    path: /video/list
+    controller: App\Controller\VideoController::videos
+    methods: [GET]
+
+video_detail:
+    path: /video/detail/{id}
+    controller: App\Controller\VideoController::video
+    methods: [GET]
+    
+video_delete:
+    path: /video/delete/{id}
+    controller: App\Controller\VideoController::delete
+    methods: [DELETE]
+    
