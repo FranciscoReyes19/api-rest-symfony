@@ -154,7 +154,7 @@ class UserController extends AbstractController
 
 		//return $this->resjson($data);
 		return $this->resjson($data);
-
+		
 	}
 
 	public function login(Request $request, JwtAuth $jwt_auth){
