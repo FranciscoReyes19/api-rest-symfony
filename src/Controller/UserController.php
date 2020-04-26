@@ -154,7 +154,6 @@ class UserController extends AbstractController
 
 		//return $this->resjson($data);
 		return $this->resjson($data);
-		
 	}
 
 	public function login(Request $request, JwtAuth $jwt_auth){
@@ -264,7 +263,7 @@ class UserController extends AbstractController
 						'email' => $email
 					]);
 
-					if (count($isset_user) == 0 || $identity->email == $email) {
+					if ($identity->email == $email || count($isset_user) == 0) {
 						//GUARDAR CAMBIOS EN LA BASE DE DATOS
 						$em->persist($user);
 						$em->flush();

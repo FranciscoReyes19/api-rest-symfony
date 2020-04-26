@@ -26,6 +26,7 @@ user_edit:
 
 
 # RUTAS PARA CONTROLADOR VIDEO #
+# path: /video/list (recibe como parametro la pagina /{page} , pero es automatico) #
 
 video:
     path: /video
